@@ -1,0 +1,27 @@
+---
+- name: Copy service files
+  become: true
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/{{ item }}"
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: 0644
+  loop:
+    - kube-scheduler.service
+    - kube-controller-manager.service
+    - kube-apiserver.service
+
+- name: Reload systemd daemon
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Enable and start services
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  loop:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler

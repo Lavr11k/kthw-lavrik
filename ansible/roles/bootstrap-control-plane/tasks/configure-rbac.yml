@@ -1,0 +1,12 @@
+---
+- name: Copy cluster role configuration
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/kube-apiserver-to-kubelet.yaml"
+    dest: "/tmp/kube-apiserver-to-kubelet.yaml"
+    mode: 0644
+
+- name: Create the RBAC cluster role
+  kubernetes.core.k8s:
+    state: present
+    src: "/tmp/kube-apiserver-to-kubelet.yaml"
+    kubeconfig: "/home/admin/admin.kubeconfig"

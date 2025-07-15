@@ -1,0 +1,8 @@
+---
+- name: Generate local files needed for setting the Kubernetes up
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - generate-certificates
+    - generate-kubeconfigs
+    - generate-encryption-config

@@ -1,0 +1,1 @@
+encryption_config_path: "{{ role_path }}/../../../encryption"

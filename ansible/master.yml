@@ -1,0 +1,10 @@
+---
+- name: Configure kubernetes master node
+  hosts: server
+  gather_facts: false
+  roles:
+    - distribute-server-certificates
+    - distribute-server-kubeconfigs
+    - bootstrap-etcd
+    - bootstrap-control-plane
+    - server-configure-network-routes

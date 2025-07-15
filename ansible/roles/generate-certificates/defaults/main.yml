@@ -1,0 +1,2 @@
+ca_config_path: "{{ role_path }}/configs/ca.conf"
+certs_path: "{{ role_path }}/../../../ca"

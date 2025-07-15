@@ -1,0 +1,59 @@
+---
+- name: Create Kubernetes directories
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  loop:
+    - "/var/lib/kubernetes"
+    - "/etc/kubernetes/config"
+
+- name: Copy certificates to Kubernetes directory
+  become: true
+  ansible.builtin.copy:
+    src: "/home/admin/{{ item }}"
+    dest: "/var/lib/kubernetes/{{ item }}"
+    remote_src: true
+    mode: 0644
+  loop:
+    - ca.crt
+    - kube-api-server.crt
+    - service-accounts.crt
+
+- name: Copy keys to Kubernetes directory
+  become: true
+  ansible.builtin.copy:
+    src: "/home/admin/{{ item }}"
+    dest: "/var/lib/kubernetes/{{ item }}"
+    remote_src: true
+    mode: 0600
+  loop:
+    - ca.key
+    - kube-api-server.key
+    - service-accounts.key
+
+- name: Copy encryption config file
+  become: true
+  ansible.builtin.copy:
+    src: "{{ enc_path }}/encryption-config.yaml"
+    dest: "/var/lib/kubernetes/encryption-config.yaml"
+    mode: 0644
+
+- name: Copy kubeconfigs
+  become: true
+  ansible.builtin.copy:
+    src: "/home/admin/{{ item }}.kubeconfig"
+    dest: "/var/lib/kubernetes/{{ item }}.kubeconfig"
+    remote_src: true
+    mode: 0644
+  loop:
+    - kube-controller-manager
+    - kube-scheduler
+
+- name: Copy kube-scheduler config
+  become: true
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/kube-scheduler.yaml"
+    dest: "/etc/kubernetes/config/kube-scheduler.yaml"
+    mode: 0644

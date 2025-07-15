@@ -1,0 +1,16 @@
+arch: amd64
+
+kube_version: "v1.32.3"
+kube_base_download_url: "https://dl.k8s.io/{{ kube_version }}/bin/linux/{{ arch }}"
+
+runc_version: "v1.3.0-rc.1"
+runc_base_download_url: "https://github.com/opencontainers/runc/releases/download/{{ runc_version }}"
+
+crictl_version: "v1.32.0"
+crictl_base_download_url: "https://github.com/kubernetes-sigs/cri-tools/releases/download/{{ crictl_version }}"
+
+containerd_version: "2.1.0-beta.0"
+containerd_base_download_url: "https://github.com/containerd/containerd/releases/download/v{{ containerd_version }}"
+
+cni_plugins_version: "v1.6.2"
+cni_plugins_base_download_url: "https://github.com/containernetworking/plugins/releases/download/{{ cni_plugins_version }}" 

@@ -1,0 +1,24 @@
+---
+- name: Check if route exists
+  become: true
+  ansible.builtin.shell: |
+    ip route get {{ item.subnet }} |
+    grep -Eo 'via [0-9.]+' |
+    awk 'NR==1 {print $2}'
+  register: route_check
+  loop:
+    - { subnet: "{{ node_0_subnet }}", gateway: "{{ node_0_ip }}" }
+    - { subnet: "{{ node_1_subnet }}", gateway: "{{ node_1_ip }}" } 
+  changed_when: false
+  ignore_errors: true
+  loop_control:
+    label: "{{ item.subnet }}"
+    index_var: route_index
+
+- name: Add missing routes
+  become: true
+  ansible.builtin.command: "ip route add {{ item.item.subnet }} via {{ item.item.gateway }}"
+  loop: "{{ route_check.results }}"
+  when: item.item.gateway != item.stdout
+  loop_control:
+    label: "{{ item.item.subnet }}"

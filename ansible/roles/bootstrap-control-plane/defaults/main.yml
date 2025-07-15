@@ -1,0 +1,5 @@
+kube_version: "v1.32.3"
+arch: amd64
+kube_base_download_url: "https://dl.k8s.io/{{ kube_version }}/bin/linux/{{ arch }}"
+
+enc_path: "{{ role_path }}/../../../encryption"

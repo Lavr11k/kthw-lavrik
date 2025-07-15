@@ -1,0 +1,53 @@
+---
+- name: Generate components private keys
+  community.crypto.openssl_privatekey:
+    path: "{{ certs_path }}/{{ item }}.key"
+    type: RSA
+    size: 4096
+    mode: 0600
+  loop:
+    - admin
+    - node-0
+    - node-1
+    - kube-proxy
+    - kube-scheduler
+    - kube-controller-manager
+    - kube-api-server
+    - service-accounts
+
+- name: Generate components CSRs
+  ansible.builtin.command: >
+    openssl req -new -key {{ certs_path }}/{{ item }}.key -sha256
+    -config {{ ca_config_path }} -section {{ item }}
+    -out {{ certs_path }}/{{ item }}.csr
+  args:
+    creates: "{{ certs_path }}/{{ item }}.csr"
+  loop:
+    - admin
+    - node-0
+    - node-1
+    - kube-proxy
+    - kube-scheduler
+    - kube-controller-manager
+    - kube-api-server
+    - service-accounts
+
+- name: Sign components certificates
+  ansible.builtin.command: >
+    openssl x509 -req -days 3653 -in {{ certs_path }}/{{ item }}.csr
+    -copy_extensions copyall
+    -sha256 -CA {{ certs_path }}/ca.crt
+    -CAkey {{ certs_path }}/ca.key
+    -CAcreateserial
+    -out {{ certs_path }}/{{ item }}.crt
+  args:
+    creates: "{{ certs_path }}/{{ item }}.crt"
+  loop:
+    - admin
+    - node-0
+    - node-1
+    - kube-proxy
+    - kube-scheduler
+    - kube-controller-manager
+    - kube-api-server
+    - service-accounts

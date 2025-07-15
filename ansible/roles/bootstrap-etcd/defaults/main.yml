@@ -1,0 +1,5 @@
+etcd_version: "v3.6.0-rc.3"
+arch: amd64
+etcd_download_url: "https://github.com/etcd-io/etcd/releases/download"
+etcd_checksum: 7ad8e742d133f781193351b296b374c1d95f92f68bdbeb4b1dc3dbc3fe0d3b72
+certs_path: "{{ role_path }}/../../../ca"

@@ -1,0 +1,92 @@
+---
+- name: Install the OS dependencies
+  become: true
+  ansible.builtin.apt:
+    name:
+      - socat
+      - conntrack
+      - ipset
+      - kmod
+    update_cache: true
+
+- name: Create Kubernetes installation folders
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  loop:
+    - /etc/cni/net.d
+    - /opt/cni/bin
+    - /var/lib/kubelet
+    - /var/lib/kube-proxy
+    - /var/lib/kubernetes
+    - /var/run/kubernetes
+    - /var/lib/containerd
+
+- name: Download single binaries
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ item.url }}"
+    dest: "/usr/local/bin/{{ item.name }}"
+    mode: 0755
+  loop:
+    - { name: "kube-proxy", url: "{{ kube_base_download_url }}/kube-proxy" }
+    - { name: "kubelet", url: "{{ kube_base_download_url }}/kubelet" }
+    - { name: "runc", url: "{{ runc_base_download_url }}/runc.{{ arch }}"}
+
+- name: Download archives
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ item.url }}/{{ item.filename }}"
+    dest: "/tmp/{{ item.filename }}"
+    checksum: "sha256:{{ item.sha256 }}"
+    mode: 0644
+  loop:
+    - {
+        url: "{{ crictl_base_download_url }}",
+        filename: "crictl-{{ crictl_version }}-linux-{{ arch }}.tar.gz",
+        sha256: "f050b71d3a73a91a4e0990b90143ed04dcd100cc66f953736fcb6a2730e283c4"
+      }
+    - {
+        url: "{{ containerd_base_download_url }}",
+        filename: "containerd-{{ containerd_version }}-linux-{{ arch }}.tar.gz",
+        sha256: "2ec23563527914ed5a084c5fa663cb8a555f777d11757910ee8800fcdf5a9a4a"
+      }
+    - {
+        url: "{{ cni_plugins_base_download_url }}",
+        filename: "cni-plugins-linux-{{ arch }}-{{ cni_plugins_version }}.tgz",
+        sha256: "b8e811578fb66023f90d2e238d80cec3bdfca4b44049af74c374d4fae0f9c090"
+      }
+
+- name: Extract crictl binary
+  become: true
+  ansible.builtin.unarchive:
+    src: "/tmp/crictl-{{ crictl_version }}-linux-{{ arch }}.tar.gz"
+    dest: "/usr/local/bin"
+    remote_src: true
+    creates: "/usr/local/bin/crictl"
+
+- name: Extract containerd binaries
+  become: true
+  ansible.builtin.unarchive:
+    src: "/tmp/containerd-{{ containerd_version }}-linux-{{ arch }}.tar.gz"
+    dest: "/bin"
+    extra_opts:
+      - "--strip-components=1"
+    include:
+      - "bin/containerd"
+      - "bin/containerd-shim-runc-v2"
+      - "bin/containerd-stress"
+    remote_src: true
+    creates: "/bin/containerd"
+
+- name: Extract cni plugins binaries
+  become: true
+  ansible.builtin.unarchive:
+    src: "/tmp/cni-plugins-linux-{{ arch }}-{{ cni_plugins_version }}.tgz"
+    dest: "/opt/cni/bin"
+    extra_opts:
+      - "--strip-components=1"
+    remote_src: true
+    creates: "/opt/cni/bin/bandwidth"

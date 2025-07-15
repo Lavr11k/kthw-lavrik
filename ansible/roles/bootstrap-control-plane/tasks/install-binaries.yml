@@ -1,0 +1,13 @@
+---
+- name: Download required Kubernetes binaries
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ kube_base_download_url }}/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    mode: 0755
+  loop:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+    - kubectl
+

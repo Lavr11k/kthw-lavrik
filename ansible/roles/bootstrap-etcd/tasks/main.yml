@@ -1,0 +1,4 @@
+---
+- include_tasks: install-binaries.yml
+- include_tasks: copy-certs.yml
+- include_tasks: start-etcd.yml

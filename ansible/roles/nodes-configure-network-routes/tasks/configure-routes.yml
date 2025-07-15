@@ -1,0 +1,25 @@
+---
+- name: Identify peer worker nodes
+  ansible.builtin.set_fact:
+    peer_workers: "{{ groups[group_names[0]] | difference([inventory_hostname]) }}"
+
+- name: Check routes to peer subnets
+  become: true
+  ansible.builtin.shell: |
+    ip route get {{ nodes_info[peer].subnet }} |
+    grep -Eo 'via [0-9.]+' |
+    awk 'NR==1 {print $2}'
+  register: route_checks
+  loop: "{{ peer_workers }}"
+  loop_control:
+    loop_var: peer
+  changed_when: false
+  ignore_errors: true
+
+- name: Add missing peer routes
+  become: true
+  ansible.builtin.command: "ip route add {{ nodes_info[item.peer].subnet }} via {{ nodes_info[item.peer].ip }}"
+  loop: "{{ route_checks.results }}"
+  when: item.stdout != nodes_info[item.peer].ip
+  loop_control:
+    label: "{{ nodes_info[item.peer].subnet }}"

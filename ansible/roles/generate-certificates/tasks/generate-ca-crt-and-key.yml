@@ -1,0 +1,23 @@
+---
+- name: Create certificates directory
+  ansible.builtin.file:
+    path: "{{ certs_path }}"
+    state: directory
+    mode: 0700
+
+- name: Generate CA private key
+  community.crypto.openssl_privatekey:
+    path: "{{ certs_path }}/ca.key"
+    type: RSA
+    size: 4096
+    mode: 0600
+
+- name: Generate CA root certificate
+  ansible.builtin.command: >
+    openssl req -x509 -new -sha512 -noenc
+    -key {{ certs_path }}/ca.key
+    -days 3653
+    -config {{ ca_config_path }}
+    -out {{ certs_path }}/ca.crt
+  args:
+    creates: "{{ certs_path }}/ca.crt"

@@ -1,0 +1,5 @@
+---
+- include_tasks: install-binaries.yml
+- include_tasks: copy-configs.yml
+- include_tasks: configure-systemd.yml
+- include_tasks: configure-rbac.yml

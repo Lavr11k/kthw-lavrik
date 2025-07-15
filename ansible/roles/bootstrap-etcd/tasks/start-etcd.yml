@@ -1,0 +1,34 @@
+---
+- name: Copy etcd.service file
+  become: true
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/etcd.service"
+    dest: "/etc/systemd/system/etcd.service"
+    mode: 0644
+
+- name: Reload systemd daemon
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Enable and start etcd service
+  become: true
+  ansible.builtin.systemd:
+    name: etcd
+    state: started
+    enabled: yes
+    masked: no
+
+- name: List the etcd cluster members
+  become: true
+  ansible.builtin.command: etcdctl member list
+  register: etcd_members
+  changed_when: false
+  retries: 5
+  delay: 5
+  until: etcd_members.rc == 0
+
+- name: Show etcd cluster members
+  become: true
+  ansible.builtin.debug:
+    msg: "{{ etcd_members.stdout_lines }}"

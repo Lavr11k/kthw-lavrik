@@ -1,0 +1,22 @@
+---
+- name: Copy certificates to master node
+  become: true
+  ansible.builtin.copy:
+    src: "{{ certs_path }}/{{ item }}"
+    dest: "/home/admin/{{ item }}"
+    mode: "0644"
+  loop:
+    - ca.crt
+    - kube-api-server.crt
+    - service-accounts.crt
+
+- name: Copy keys to master node
+  become: true
+  ansible.builtin.copy:
+    src: "{{ certs_path }}/{{ item }}"
+    dest: "/home/admin/{{ item }}"
+    mode: "0600"
+  loop:
+    - ca.key
+    - kube-api-server.key
+    - service-accounts.key

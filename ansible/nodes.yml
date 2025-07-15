@@ -1,0 +1,9 @@
+---
+- name: Configure kubernetes worker nodes
+  hosts: nodes
+  gather_facts: false
+  roles:
+    - distribute-nodes-certificates
+    - distribute-nodes-kubeconfigs
+    - bootstrap-worker-nodes
+    - nodes-configure-network-routes

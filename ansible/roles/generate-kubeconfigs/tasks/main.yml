@@ -1,0 +1,4 @@
+---
+- include_tasks: generate-kubeconfigs.yml
+- include_tasks: generate-local-kubeconfig.yml
+

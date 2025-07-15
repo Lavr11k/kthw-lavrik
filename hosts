@@ -1,0 +1,4 @@
+# Kubernetes The Hard Way
+172.31.20.196 server.kubernetes.local server
+172.31.20.100 node-0.kubernetes.local node-0
+172.31.25.28 node-1.kubernetes.local node-1

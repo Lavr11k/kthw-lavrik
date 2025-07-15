@@ -1,0 +1,28 @@
+---
+- name: Create kubelet directory
+  become: true
+  ansible.builtin.file:
+    path: /var/lib/kubelet
+    state: directory
+    mode: 0755
+
+- name: Copy CA certificate
+  become: true
+  ansible.builtin.copy:
+    src: "{{ certs_path }}/ca.crt"
+    dest: /var/lib/kubelet/ca.crt
+    mode: 0644
+
+- name: Copy node-specific certificate
+  become: true
+  ansible.builtin.copy:
+    src: "{{ certs_path }}/{{ inventory_hostname }}.crt"
+    dest: /var/lib/kubelet/kubelet.crt
+    mode: 0644
+
+- name: Copy node-specific key
+  become: true
+  ansible.builtin.copy:
+    src: "{{ certs_path }}/{{ inventory_hostname }}.key"
+    dest: /var/lib/kubelet/kubelet.key
+    mode: 0600

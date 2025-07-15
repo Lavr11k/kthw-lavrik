@@ -1,0 +1,2 @@
+kubeconfigs_path: "{{ role_path }}/../../../kubeconfig"
+certs_path: "{{ role_path }}/../../../ca"

@@ -1,0 +1,31 @@
+---
+- name: Download etcd binaries
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ etcd_download_url }}/{{ etcd_version }}/etcd-{{ etcd_version }}-linux-{{ arch }}.tar.gz"
+    dest: "/tmp/etcd-{{ etcd_version }}-linux-{{ arch }}.tar.gz"
+    checksum: "sha256:{{ etcd_checksum }}"
+    mode: 0644
+
+- name: Extract etcd binaries
+  become: true
+  ansible.builtin.unarchive:
+    src: "/tmp/etcd-{{ etcd_version }}-linux-{{ arch }}.tar.gz"
+    dest: "/usr/local/bin"
+    extra_opts:
+      - "--strip-components=1"
+    include:
+      - etcd-{{ etcd_version }}-linux-{{ arch }}/etcd
+      - etcd-{{ etcd_version }}-linux-{{ arch }}/etcdctl
+    remote_src: true
+    creates: "/usr/local/bin/etcd"
+
+- name: Set executable permissions for etcd binaries
+  become: true
+  ansible.builtin.file:
+    path: "/usr/local/bin/{{ item }}"
+    mode: 0755
+    state: file
+  loop:
+    - etcd
+    - etcdctl

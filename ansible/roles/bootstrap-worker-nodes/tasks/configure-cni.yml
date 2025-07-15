@@ -1,0 +1,107 @@
+---
+- name: Ensure /etc/cni/net.d/ directory exists
+  ansible.builtin.file:
+    path: /etc/cni/net.d
+    state: directory
+    mode: 0755
+
+- name: Move 10-bridge.conf
+  become: true
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/10-bridge.{{ inventory_hostname }}.conf"
+    dest: "/etc/cni/net.d/10-bridge.conf"
+    mode: 0644
+
+- name: Move 99-loopback.conf
+  become: true
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/99-loopback.conf"
+    dest: "/etc/cni/net.d/99-loopback.conf"
+    mode: 0644
+
+- name: Load br-netfilter kernel module
+  community.general.modprobe:
+    name: br-netfilter
+    state: present
+
+- name: Ensure br-netfilter loads on boot
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/modules-load.d/modules.conf
+    line: br-netfilter
+    create: yes
+    state: present
+
+- name: Set sysctl options for CNI networking
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/kubernetes.conf
+    content: |
+      net.bridge.bridge-nf-call-iptables = 1
+      net.bridge.bridge-nf-call-ip6tables = 1
+    mode: 0644
+  notify: Apply sysctl changes
+  
+- name: Create containerd directory
+  become: true
+  ansible.builtin.file:
+    path: /etc/containerd
+    state: directory
+    mode: 0755
+
+- name: Copy containerd config
+  become: true
+  ansible.builtin.copy: 
+    src: "{{ role_path }}/files/containerd-config.toml"
+    dest: /etc/containerd/config.toml
+    mode: 0644
+
+- name: Copy containerd service
+  become: true
+  ansible.builtin.copy: 
+    src: "{{ role_path }}/files/containerd.service"
+    dest: /etc/systemd/system/
+    mode: 0644
+
+- name: Copy kubelet service
+  become: true
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/kubelet.service"
+    dest: /etc/systemd/system/kubelet.service
+    mode: 0644
+
+- name: Copy kubelet config
+  become: true
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/kubelet-config.yaml"
+    dest: /var/lib/kubelet/kubelet-config.yaml
+    mode:   
+
+- name: Copy kube-proxy config
+  become: true
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/kube-proxy-config.yaml"
+    dest: /var/lib/kube-proxy/kube-proxy-config.yaml
+    mode: 0644
+
+- name: Copy kube-proxy service
+  become: true
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/kube-proxy.service"
+    dest: /etc/systemd/system/kube-proxy.service
+    mode: 0644
+
+- name: Reload systemd
+  become: true
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+- name: Start containerd, kubelet, and kube-proxy
+  become: true
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+  loop:
+    - containerd
+    - kubelet
+    - kube-proxy
